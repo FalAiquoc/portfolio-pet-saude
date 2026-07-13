@@ -5,10 +5,41 @@ import { Icon } from './components/Icon';
 export default function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  
+  // Estados para o Simulador de Banho e Tosa
+  const [petSize, setPetSize] = useState<string>('Pequeno');
+  const [furType, setFurType] = useState<string>('Curto');
+  const [selectedExtras, setSelectedExtras] = useState<string[]>([]);
 
-  // Injeção dinâmica de fontes e cores baseadas no data.ts
+  // Tabela de Preços do Pet Shop
+  const sizePrices: Record<string, number> = { Pequeno: 50.00, Médio: 70.00, Grande: 90.00 };
+  const furPrices: Record<string, number> = { Curto: 0.00, Longo: 15.00 };
+  const extrasPrices: Record<string, number> = {
+    'Tosa Higiênica': 15.00,
+    'Hidratação de Pelos': 20.00,
+    'Corte de Unhas': 10.00,
+    'Limpeza de Ouvidos': 10.00
+  };
+
+  // Cálculo de Preço Estimado
+  const calculateTotal = () => {
+    let total = (sizePrices[petSize] || 50.00) + (furPrices[furType] || 0.00);
+    selectedExtras.forEach(extra => {
+      total += extrasPrices[extra] || 0;
+    });
+    return total;
+  };
+
+  const handleToggleExtra = (extra: string) => {
+    if (selectedExtras.includes(extra)) {
+      setSelectedExtras(selectedExtras.filter(item => item !== extra));
+    } else {
+      setSelectedExtras([...selectedExtras, extra]);
+    }
+  };
+
+  // Injeção de fontes e cores
   useEffect(() => {
-    // 1. Configurar fontes
     if (storeData.typography.importUrl) {
       const linkId = 'store-google-fonts';
       let fontLink = document.getElementById(linkId) as HTMLLinkElement;
@@ -21,237 +52,110 @@ export default function App() {
       fontLink.href = storeData.typography.importUrl;
     }
 
-    // 2. Setar CSS variables para fontes e cores no root
     const root = document.documentElement;
     root.style.setProperty('--font-display-family', storeData.typography.displayFontFamily);
     root.style.setProperty('--font-body-family', storeData.typography.bodyFontFamily);
 
-    // Gerar paleta baseada no hex da cor primária
-    // Converter hex para RGB para variações no tailwind v4 se necessário, ou usar as cores puras.
-    root.style.setProperty('--p-50', `${storeData.colors.primaryHex}06`); // Opacidade 2%
-    root.style.setProperty('--p-100', `${storeData.colors.primaryHex}0f`); // Opacidade 6%
-    root.style.setProperty('--p-200', `${storeData.colors.primaryHex}22`); // Opacidade 13%
-    root.style.setProperty('--p-300', `${storeData.colors.primaryHex}44`); // Opacidade 26%
-    root.style.setProperty('--p-400', `${storeData.colors.primaryHex}77`); // Opacidade 46%
-    root.style.setProperty('--p-500', storeData.colors.primaryHex);
-    root.style.setProperty('--p-600', storeData.colors.primaryHex);
-    root.style.setProperty('--p-700', storeData.colors.primaryHex);
-    root.style.setProperty('--p-800', storeData.colors.primaryHex);
-    root.style.setProperty('--p-900', storeData.colors.primaryHex);
+    // Cores do Pet Shop (Azul Ciano, Amarelo Mel, Arredondados)
+    root.style.setProperty('--p-50', '#ecfeff'); // Azul Ciano Suave
+    root.style.setProperty('--p-100', '#cffafe');
+    root.style.setProperty('--p-500', storeData.colors.primaryHex); // Azul Ciano
+    root.style.setProperty('--p-600', '#0891b2');
+    root.style.setProperty('--p-700', '#0e7490');
+    root.style.setProperty('--p-800', '#155e75');
 
-    // Gerar paleta baseada na cor de destaque (accent)
     root.style.setProperty('--a-50', `${storeData.colors.accentHex}10`);
     root.style.setProperty('--a-100', `${storeData.colors.accentHex}20`);
-    root.style.setProperty('--a-200', `${storeData.colors.accentHex}40`);
-    root.style.setProperty('--a-300', `${storeData.colors.accentHex}70`);
-    root.style.setProperty('--a-400', storeData.colors.accentHex);
-    root.style.setProperty('--a-500', storeData.colors.accentHex);
-    root.style.setProperty('--a-600', storeData.colors.accentHex);
-    root.style.setProperty('--a-700', storeData.colors.accentHex);
-    root.style.setProperty('--a-800', storeData.colors.accentHex);
-    root.style.setProperty('--a-900', storeData.colors.accentHex);
+    root.style.setProperty('--a-500', storeData.colors.accentHex); // Amarelo/Laranja Mel
 
-    // Modificar dinamicamente o título do site no head
-    document.title = `${storeData.name} — ${storeData.tagline}`;
-    
-    // Atualizar a meta tag description se houver
-    let metaDescription = document.querySelector('meta[name="description"]');
-    if (!metaDescription) {
-      metaDescription = document.createElement('meta');
-      metaDescription.setAttribute('name', 'description');
-      document.head.appendChild(metaDescription);
-    }
-    metaDescription.setAttribute('content', storeData.description);
+    document.title = `${storeData.name} — Carinho & Saúde Pet`;
   }, []);
 
-  // Monitor de scroll para mudar aparência do Header
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 20) {
-        setScrolled(true);
-      } else {
-        setScrolled(false);
-      }
+      setScrolled(window.scrollY > 20);
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Criação do link do WhatsApp personalizado
-  const getWhatsAppLink = (messageText?: string) => {
-    const defaultMsg = messageText || storeData.whatsappMessage;
-    const encoded = encodeURIComponent(defaultMsg);
-    return `https://api.whatsapp.com/send?phone=${storeData.whatsappNumber}&text=${encoded}`;
+  const getWhatsAppLink = (msg?: string) => {
+    const defaultMsg = msg || storeData.whatsappMessage;
+    return `https://api.whatsapp.com/send?phone=${storeData.whatsappNumber}&text=${encodeURIComponent(defaultMsg)}`;
+  };
+
+  // Mensagem para o WhatsApp contendo os detalhes do Banho e Tosa simulado
+  const getCustomServiceOrderLink = () => {
+    const text = `Olá! Gostaria de agendar o Banho e Tosa simulado no site:\n- Porte do Pet: ${petSize}\n- Tipo de Pelo: ${furType}\n- Serviços Extras: ${selectedExtras.join(', ') || 'Nenhum'}\n- Valor Estimado: R$ ${calculateTotal().toFixed(2)}\nFavor confirmar data e hora disponíveis.`;
+    return getWhatsAppLink(text);
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 selection:bg-accent-500 selection:text-white antialiased">
+    <div className="min-h-screen bg-slate-50 text-slate-800 antialiased selection:bg-cyan-100 selection:text-cyan-900">
       
-      {/* 1. HEADER (Navegação) */}
-      <header 
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          scrolled 
-            ? 'bg-white/85 backdrop-blur-md shadow-md border-b border-slate-100 py-3' 
-            : 'bg-transparent py-5'
-        }`}
-      >
+      {/* HEADER */}
+      <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/95 backdrop-blur-md shadow-md border-b border-cyan-100 py-3' : 'bg-transparent py-5'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
-            {/* Logo */}
             <a href="#hero" className="flex items-center space-x-2">
-              <span 
-                className="text-2xl font-black tracking-tight transition-colors duration-300"
-                style={{ fontFamily: 'var(--font-display)', color: 'var(--p-500)' }}
-              >
-                {storeData.name}
+              <span className="p-2 bg-cyan-500 text-white rounded-2xl">
+                <Icon name="Activity" size={20} />
+              </span>
+              <span className="text-xl font-bold tracking-tight text-slate-900" style={{ fontFamily: 'var(--font-display)' }}>
+                Pet<span className="text-cyan-600 font-extrabold">Saúde</span>
               </span>
             </a>
-
-            {/* Menu Desktop */}
             <nav className="hidden md:flex items-center space-x-8">
-              <a href="#produtos" className="text-sm font-medium hover:text-accent-500 transition-colors">Produtos & Serviços</a>
-              <a href="#sobre" className="text-sm font-medium hover:text-accent-500 transition-colors">Quem Somos</a>
-              <a href="#localizacao" className="text-sm font-medium hover:text-accent-500 transition-colors">Endereço</a>
-              <a 
-                href={getWhatsAppLink()} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="inline-flex items-center px-4 py-2 text-sm font-semibold text-white rounded-full transition-all hover:scale-105 hover:shadow-lg"
-                style={{ backgroundColor: 'var(--a-500)' }}
-              >
-                <Icon name="Phone" className="mr-2" size={16} />
-                WhatsApp
+              <a href="#simulador" className="text-sm font-bold text-slate-600 hover:text-cyan-600 transition-colors">Simulador Banho & Tosa</a>
+              <a href="#servicos" className="text-sm font-bold text-slate-600 hover:text-cyan-600 transition-colors">Serviços</a>
+              <a href="#produtos" className="text-sm font-bold text-slate-600 hover:text-cyan-600 transition-colors">Produtos</a>
+              <a href="#localizacao" className="text-sm font-bold text-slate-600 hover:text-cyan-600 transition-colors">Contato</a>
+              <a href={getWhatsAppLink()} target="_blank" rel="noopener noreferrer" className="inline-flex items-center px-5 py-2.5 text-sm font-bold text-white bg-cyan-500 hover:bg-cyan-600 rounded-full transition-all hover:scale-105 shadow-md shadow-cyan-500/10">
+                <Icon name="Phone" className="mr-2" size={16} /> Agendar Táxi Pet
               </a>
             </nav>
-
-            {/* Hamburguer Button Mobile */}
-            <div className="md:hidden">
-              <button 
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="p-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors"
-                aria-label="Menu"
-              >
-                <Icon name={mobileMenuOpen ? 'X' : 'Menu'} size={24} />
-              </button>
-            </div>
+            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="md:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors">
+              <Icon name={mobileMenuOpen ? 'X' : 'Menu'} size={24} />
+            </button>
           </div>
         </div>
-
-        {/* Menu Mobile */}
-        {mobileMenuOpen && (
-          <div className="md:hidden bg-white border-b border-slate-100 px-4 pt-2 pb-6 space-y-3 shadow-inner">
-            <a 
-              href="#produtos" 
-              onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-lg text-base font-medium hover:bg-slate-50 transition-colors"
-            >
-              Produtos & Serviços
-            </a>
-            <a 
-              href="#sobre" 
-              onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-lg text-base font-medium hover:bg-slate-50 transition-colors"
-            >
-              Quem Somos
-            </a>
-            <a 
-              href="#localizacao" 
-              onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-lg text-base font-medium hover:bg-slate-50 transition-colors"
-            >
-              Endereço
-            </a>
-            <a 
-              href={getWhatsAppLink()}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center w-full px-4 py-3 text-base font-semibold text-white rounded-full"
-              style={{ backgroundColor: 'var(--a-500)' }}
-            >
-              <Icon name="Phone" className="mr-2" size={18} />
-              Chamar no WhatsApp
-            </a>
-          </div>
-        )}
       </header>
 
-      {/* 2. HERO SECTION */}
-      <section id="hero" className="relative pt-32 pb-20 md:pt-48 md:pb-32 overflow-hidden bg-slate-50">
-        {/* Elemento Decorativo SVG no Fundo */}
-        <div className="absolute inset-0 z-0 pointer-events-none opacity-40">
-          <svg className="absolute right-0 top-0 w-1/2 h-full text-slate-100" fill="currentColor" viewBox="0 0 100 100" preserveAspectRatio="none">
-            <polygon points="50,0 100,0 100,100 0,100" />
-          </svg>
-          {/* Círculo abstrato colorido no fundo */}
-          <div 
-            className="absolute top-1/4 right-10 w-96 h-96 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob"
-            style={{ backgroundColor: 'var(--p-500)' }}
-          ></div>
-          <div 
-            className="absolute bottom-1/4 right-48 w-80 h-80 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-2000"
-            style={{ backgroundColor: 'var(--a-500)' }}
-          ></div>
-        </div>
-
+      {/* HERO SECTION */}
+      <section id="hero" className="relative pt-36 pb-24 md:pt-48 md:pb-36 bg-gradient-to-br from-cyan-50/60 via-white to-amber-50/20 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             
             {/* Texto Hero */}
             <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
-              <div 
-                className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider"
-                style={{ backgroundColor: 'var(--p-100)', color: 'var(--p-500)' }}
-              >
-                📍 Lagoa Nova - Natal/RN
+              <div className="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-cyan-100 text-cyan-800 border border-cyan-200">
+                🐾 O Seu Pet em Boas Mãos
               </div>
-              <h1 
-                className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight leading-none"
-                style={{ fontFamily: 'var(--font-display)', color: 'var(--p-500)' }}
-              >
-                {storeData.name}
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-slate-900 leading-[1.08] tracking-tight" style={{ fontFamily: 'var(--font-display)' }}>
+                Todo carinho e atenção que o <span className="text-cyan-500 block">seu melhor amigo merece!</span>
               </h1>
-              <p className="text-xl sm:text-2xl font-light text-slate-600 max-w-2xl mx-auto lg:mx-0">
-                {storeData.tagline}
+              <p className="text-lg text-slate-600 font-light max-w-xl mx-auto lg:mx-0">
+                {storeData.description} Consultas veterinárias, banho e tosa profissional com produtos hipoalergênicos e táxi dog exclusivo na Prudente de Morais.
               </p>
-              <p className="text-base text-slate-500 max-w-xl mx-auto lg:mx-0">
-                {storeData.description}
-              </p>
-              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
-                <a 
-                  href={getWhatsAppLink()} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center w-full sm:w-auto px-8 py-4 text-base font-bold text-white rounded-full shadow-lg transition-all hover:scale-105 hover:shadow-xl"
-                  style={{ backgroundColor: 'var(--a-500)' }}
-                >
-                  <Icon name="Phone" className="mr-2" size={20} />
-                  Fazer Pedido / Orçamento
+              
+              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-4">
+                <a href={getWhatsAppLink()} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center w-full sm:w-auto px-8 py-4 text-base font-bold text-white bg-cyan-500 hover:bg-cyan-600 rounded-full shadow-lg shadow-cyan-500/20 transition-all hover:scale-105">
+                  <Icon name="Phone" className="mr-2" size={20} /> Agendar Banho/Consulta
                 </a>
-                <a 
-                  href="#produtos" 
-                  className="flex items-center justify-center w-full sm:w-auto px-8 py-4 text-base font-semibold text-slate-700 bg-white border border-slate-200 rounded-full shadow-sm hover:bg-slate-50 hover:text-slate-900 transition-all hover:scale-105"
-                >
-                  Conhecer Produtos
+                <a href="#simulador" className="flex items-center justify-center w-full sm:w-auto px-8 py-4 text-base font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 rounded-full transition-all">
+                  🐾 Calcular Preço de Tosa
                 </a>
               </div>
             </div>
 
-            {/* Imagem/Elemento visual do Hero */}
-            <div className="lg:col-span-5 relative">
-              <div className="relative mx-auto w-full max-w-md lg:max-w-none">
-                {/* Armação decorativa de fundo */}
-                <div 
-                  className="absolute inset-0 rounded-2xl transform rotate-3 scale-102 opacity-20 filter blur-sm"
-                  style={{ backgroundColor: 'var(--p-500)' }}
-                ></div>
-                <div className="relative bg-white p-4 rounded-2xl shadow-xl border border-slate-100 overflow-hidden">
-                  <img 
-                    src={storeData.products[0]?.imageUrl || storeData.aboutImage} 
-                    alt={storeData.name}
-                    className="w-full h-80 object-cover rounded-xl transition-transform duration-500 hover:scale-105"
-                  />
-                  <div className="absolute top-6 right-6 bg-green-550 text-white bg-emerald-500 font-bold px-3 py-1 rounded-full text-sm shadow-md animate-bounce">
-                    Aberto agora!
+            {/* Imagem do Pet Fofo */}
+            <div className="lg:col-span-5">
+              <div className="relative mx-auto w-full max-w-sm">
+                <div className="absolute inset-0 rounded-[40px] bg-cyan-500/10 transform rotate-3 scale-102 filter blur-sm"></div>
+                <div className="relative bg-white p-4 rounded-[36px] border border-slate-100 shadow-xl overflow-hidden">
+                  <img src="https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&q=80&w=800" alt="Cãozinho Feliz" className="w-full h-80 object-cover rounded-[28px]" />
+                  <div className="absolute top-8 right-8 bg-amber-500 text-white font-bold px-4 py-1.5 rounded-full text-xs shadow-md uppercase tracking-wider animate-bounce">
+                    Táxi Pet Ativo
                   </div>
                 </div>
               </div>
@@ -261,217 +165,252 @@ export default function App() {
         </div>
       </section>
 
-      {/* 3. DIFERENCIAIS (FEATURES) */}
-      <section className="py-16 bg-white border-y border-slate-100">
+      {/* SIMULADOR DE PREÇO BANHO & TOSA */}
+      <section id="simulador" className="py-20 bg-white border-y border-slate-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
+            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900" style={{ fontFamily: 'var(--font-display)' }}>
+              Simulador de <span className="text-cyan-500">Banho & Tosa</span>
+            </h2>
+            <p className="text-slate-500 text-lg font-light">
+              Monte os serviços estéticos para o seu cãozinho ou gatinho e obtenha um orçamento estimado em segundos de forma interativa.
+            </p>
+          </div>
+
+          <div className="bg-cyan-50/30 rounded-[32px] border border-cyan-100/50 p-8 lg:p-12 shadow-sm max-w-4xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+              
+              {/* Opções de Simulação */}
+              <div className="space-y-6 text-left">
+                <h3 className="text-xl font-bold text-slate-800">Escolha os detalhes do seu Pet:</h3>
+                
+                {/* Porte */}
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">Porte do Animal:</label>
+                  <div className="grid grid-cols-3 gap-3">
+                    {['Pequeno', 'Médio', 'Grande'].map((size) => (
+                      <button
+                        key={size}
+                        onClick={() => setPetSize(size)}
+                        className={`py-3 rounded-xl border text-xs font-bold uppercase transition-all ${
+                          petSize === size
+                            ? 'bg-cyan-500 text-white border-cyan-500 shadow-sm'
+                            : 'bg-white text-slate-600 border-slate-200 hover:border-cyan-500'
+                        }`}
+                      >
+                        {size === 'Pequeno' ? 'P (Até 10kg)' : size === 'Médio' ? 'M (10-25kg)' : 'G (Acima 25kg)'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Tipo de Pelo */}
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">Comprimento do Pelo:</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {['Curto', 'Longo'].map((fur) => (
+                      <button
+                        key={fur}
+                        onClick={() => setFurType(fur)}
+                        className={`py-3 rounded-xl border text-xs font-bold uppercase transition-all ${
+                          furType === fur
+                            ? 'bg-cyan-500 text-white border-cyan-500 shadow-sm'
+                            : 'bg-white text-slate-600 border-slate-200 hover:border-cyan-500'
+                        }`}
+                      >
+                        Pelo {fur}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Extras */}
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">Opcionais Extra:</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {Object.keys(extrasPrices).map((extra) => (
+                      <button
+                        key={extra}
+                        onClick={() => handleToggleExtra(extra)}
+                        className={`py-2 px-3 rounded-lg border text-[10px] font-bold uppercase transition-all flex items-center justify-between ${
+                          selectedExtras.includes(extra)
+                            ? 'bg-cyan-500 text-white border-cyan-500'
+                            : 'bg-white text-slate-600 border-slate-200 hover:border-cyan-500'
+                        }`}
+                      >
+                        <span>{extra}</span>
+                        <span className="ml-1 text-slate-400">
+                          +R$ {extrasPrices[extra].toFixed(0)}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Resultado Resumo */}
+              <div className="bg-white p-8 rounded-2xl border border-slate-250/60 shadow-inner flex flex-col justify-between min-h-[300px]">
+                <div className="text-center space-y-4">
+                  <div className="p-3 bg-cyan-500/10 rounded-full inline-block text-cyan-600 mb-2">
+                    <Icon name="Award" size={32} />
+                  </div>
+                  <h4 className="text-slate-500 text-xs font-bold uppercase tracking-wider">Orçamento Estimado</h4>
+                  <div className="space-y-1">
+                    <p className="text-[10px] text-slate-400">Valor Total Estimado:</p>
+                    <p className="text-4xl font-extrabold text-cyan-600">R$ {calculateTotal().toFixed(2)}</p>
+                  </div>
+                  <div className="bg-slate-50 p-3 rounded-xl inline-block border border-slate-100 text-left w-full text-xs text-slate-500">
+                    <p>Porte: <strong>{petSize}</strong> (+ R$ {sizePrices[petSize].toFixed(0)})</p>
+                    <p>Pelo: <strong>{furType}</strong> (+ R$ {furPrices[furType].toFixed(0)})</p>
+                    <p>Extras: <strong>{selectedExtras.join(', ') || 'Nenhum'}</strong></p>
+                  </div>
+                </div>
+
+                <a href={getCustomServiceOrderLink()} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center w-full py-4 text-xs font-bold uppercase tracking-wider text-white bg-cyan-500 hover:bg-cyan-600 rounded-xl transition-all shadow-md">
+                  Agendar este Serviço
+                </a>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* DIFERENCIAIS / SERVIÇOS */}
+      <section id="servicos" className="py-20 bg-slate-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
+            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900" style={{ fontFamily: 'var(--font-display)' }}>
+              Nossos Serviços <span className="text-cyan-500">Especializados</span>
+            </h2>
+            <p className="text-slate-500 text-lg font-light">Cuidado veterinário e serviços de estética de primeiro mundo.</p>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {storeData.features.map((feature, idx) => (
-              <div 
-                key={idx}
-                className="flex items-start p-6 rounded-2xl bg-slate-50/50 hover:bg-white hover:shadow-xl transition-all duration-300 border border-transparent hover:border-slate-100 group"
-              >
-                <div 
-                  className="p-3 rounded-xl mr-4 text-white transition-all group-hover:scale-110"
-                  style={{ backgroundColor: 'var(--p-500)' }}
-                >
+              <div key={idx} className="bg-white p-8 rounded-3xl border border-slate-100 hover:border-cyan-200 shadow-sm hover:shadow-lg transition-all duration-300 group text-center">
+                <div className="p-3 bg-cyan-500/10 text-cyan-600 rounded-full inline-block mb-4 transition-transform group-hover:scale-110">
                   <Icon name={feature.iconName} size={24} />
                 </div>
-                <div>
-                  <h3 className="text-lg font-bold text-slate-800 mb-1">{feature.title}</h3>
-                  <p className="text-sm text-slate-500">{feature.description}</p>
-                </div>
+                <h3 className="text-lg font-bold text-slate-800 mb-2">{feature.title}</h3>
+                <p className="text-sm text-slate-500 leading-relaxed">{feature.description}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* 4. PRODUTOS / SERVIÇOS */}
-      <section id="produtos" className="py-20 bg-slate-50">
+      {/* VITRINE DE PRODUTOS */}
+      <section id="produtos" className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
-            <h2 
-              className="text-3xl sm:text-4xl font-extrabold tracking-tight"
-              style={{ fontFamily: 'var(--font-display)', color: 'var(--p-500)' }}
-            >
-              Nossa Vitrine Especial
+            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900" style={{ fontFamily: 'var(--font-display)' }}>
+              Pet Shop <span className="text-cyan-500">Destaques</span>
             </h2>
-            <div className="w-16 h-1 mx-auto rounded-full" style={{ backgroundColor: 'var(--a-500)' }}></div>
-            <p className="text-lg text-slate-500">
-              Explore uma seleção especial de nossos produtos e serviços. Peça o seu direto pelo WhatsApp de forma rápida e segura!
-            </p>
+            <p className="text-slate-500 text-lg font-light">Rações premium, acessórios especiais e brinquedos seguros para o seu pet.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {storeData.products.map((product) => (
-              <div 
-                key={product.id}
-                className="bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 border border-slate-100 flex flex-col group"
-              >
-                {/* Imagem do Produto */}
-                {product.imageUrl && (
-                  <div className="relative h-64 overflow-hidden bg-slate-100">
-                    <img 
-                      src={product.imageUrl} 
-                      alt={product.name}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      loading="lazy"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
-                      <span className="text-white text-sm font-semibold">Orçamento instantâneo</span>
-                    </div>
-                  </div>
-                )}
-
-                {/* Corpo do Cartão */}
+              <div key={product.id} className="bg-slate-50 rounded-[32px] overflow-hidden border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col group">
+                <div className="relative h-60 overflow-hidden bg-slate-100">
+                  <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+                </div>
                 <div className="p-6 flex-grow flex flex-col justify-between space-y-4">
                   <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <span 
-                        className="p-1.5 rounded-lg text-white"
-                        style={{ backgroundColor: 'var(--p-400)' }}
-                      >
-                        <Icon name={product.iconName} size={16} />
-                      </span>
-                      <h3 className="text-xl font-bold text-slate-800 line-clamp-1">{product.name}</h3>
-                    </div>
-                    <p className="text-sm text-slate-500 line-clamp-3">{product.description}</p>
+                    <h3 className="text-lg font-bold text-slate-800 line-clamp-1">{product.name}</h3>
+                    <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">{product.description}</p>
                   </div>
-
-                  <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-                    {product.price && (
-                      <span className="text-base font-bold text-slate-700">{product.price}</span>
-                    )}
-                    <a 
-                      href={getWhatsAppLink(`Olá, gostaria de saber mais sobre o produto: ${product.name}`)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center px-4 py-2 text-sm font-semibold text-white rounded-full transition-all hover:scale-105"
-                      style={{ backgroundColor: 'var(--a-500)' }}
-                    >
-                      Solicitar
-                      <Icon name="ChevronRight" className="ml-1" size={14} />
+                  <div className="pt-4 border-t border-slate-200/60 flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-650 bg-cyan-500/10 text-cyan-800 px-3 py-1 rounded-full">{product.price}</span>
+                    <a href={getWhatsAppLink(`Olá, gostaria de pedir o produto: ${product.name}`)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center px-4 py-2 text-xs font-bold text-white bg-cyan-500 hover:bg-cyan-600 rounded-full transition-all">
+                      Pedir
                     </a>
                   </div>
                 </div>
-
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* 5. SOBRE A LOJA */}
-      <section id="sobre" className="py-20 bg-white">
+      {/* CLÍNICA (SOBRE NÓS) */}
+      <section id="sobre" className="py-20 bg-slate-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-            
-            {/* Foto sobre */}
             <div className="lg:col-span-5">
-              <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-slate-100">
-                <img 
-                  src={storeData.aboutImage} 
-                  alt="Quem somos"
-                  className="w-full h-96 object-cover"
-                />
-                <div 
-                  className="absolute inset-0 opacity-10"
-                  style={{ backgroundColor: 'var(--p-500)' }}
-                ></div>
+              <div className="relative rounded-[36px] overflow-hidden shadow-2xl border border-slate-100 bg-[#0e7490] p-2">
+                <img src={storeData.aboutImage} alt="Clínica Veterinária Pet Saúde" className="w-full h-[400px] object-cover rounded-[28px]" />
               </div>
             </div>
-
-            {/* Conteúdo sobre */}
             <div className="lg:col-span-7 space-y-6">
-              <div className="space-y-2">
-                <span className="text-sm font-bold uppercase tracking-wider text-slate-400">Nossa História</span>
-                <h2 
-                  className="text-3xl sm:text-4xl font-extrabold tracking-tight"
-                  style={{ fontFamily: 'var(--font-display)', color: 'var(--p-500)' }}
-                >
-                  Compromisso com você em Natal
-                </h2>
-              </div>
-              <p className="text-lg text-slate-600 leading-relaxed font-light">
+              <span className="text-xs font-bold uppercase tracking-widest text-cyan-600 bg-cyan-500/10 px-3 py-1 rounded-full">Clínica Veterinária 24h</span>
+              <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 leading-tight" style={{ fontFamily: 'var(--font-display)' }}>
+                Estrutura de diagnóstico moderna e <span className="text-cyan-500 block mt-1">atendimento humanizado</span>
+              </h2>
+              <p className="text-slate-600 text-base leading-relaxed font-light">
                 {storeData.aboutText}
               </p>
-              
-              {/* Box de Credenciais */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
-                <div className="flex items-center space-x-3 p-4 rounded-xl bg-slate-50 border border-slate-100">
-                  <Icon name="Award" className="text-emerald-500" size={32} />
+                <div className="flex items-center space-x-3 p-4 rounded-2xl bg-white border border-slate-150">
+                  <Icon name="Activity" className="text-cyan-500" size={24} />
                   <div>
-                    <h4 className="font-bold text-slate-800">100% Original</h4>
-                    <p className="text-xs text-slate-500">Produtos com procedência e garantia.</p>
+                    <h4 className="font-bold text-slate-800 text-xs">Exames Rápidos</h4>
+                    <p className="text-[10px] text-slate-400">Laboratório próprio de análises clínicas.</p>
                   </div>
                 </div>
-                <div className="flex items-center space-x-3 p-4 rounded-xl bg-slate-50 border border-slate-100">
-                  <Icon name="Users" className="text-blue-500" size={32} />
+                <div className="flex items-center space-x-3 p-4 rounded-2xl bg-white border border-slate-150">
+                  <Icon name="Award" className="text-cyan-500" size={24} />
                   <div>
-                    <h4 className="font-bold text-slate-800">Atendimento Humanizado</h4>
-                    <p className="text-xs text-slate-500">Consultores prontos para te ajudar.</p>
+                    <h4 className="font-bold text-slate-800 text-xs">Veterinários 24h</h4>
+                    <p className="text-[10px] text-slate-400">Pronto atendimento médico emergencial.</p>
                   </div>
                 </div>
               </div>
             </div>
-
           </div>
         </div>
       </section>
 
-      {/* 6. LOCALIZAÇÃO E CONTATO */}
-      <section id="localizacao" className="py-20 bg-slate-50">
+      {/* LOCALIZAÇÃO E CONTATO */}
+      <section id="localizacao" className="py-20 bg-white border-t border-slate-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          
           <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
-            <h2 
-              className="text-3xl sm:text-4xl font-extrabold tracking-tight"
-              style={{ fontFamily: 'var(--font-display)', color: 'var(--p-500)' }}
-            >
-              Fale Conosco e Visite-nos
-            </h2>
-            <div className="w-16 h-1 mx-auto rounded-full" style={{ backgroundColor: 'var(--a-500)' }}></div>
-            <p className="text-lg text-slate-500">
-              Estamos localizados no coração de Lagoa Nova. Venha conhecer nossa loja física ou faça sua consulta online!
-            </p>
+            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900" style={{ fontFamily: 'var(--font-display)' }}>Visite Nossa Sede</h2>
+            <p className="text-slate-500 text-lg font-light">Localizado em Lagoa Nova com fácil acesso e estacionamento gratuito.</p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
-            
-            {/* Informações de contato e Horários */}
-            <div className="lg:col-span-5 bg-white p-8 rounded-2xl shadow-md border border-slate-100 flex flex-col justify-between space-y-8">
-              
+            <div className="lg:col-span-5 bg-slate-50 p-8 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between space-y-8">
               <div className="space-y-6">
-                <h3 className="text-xl font-bold text-slate-800">Informações de Contato</h3>
-                
-                <div className="space-y-4">
+                <h3 className="text-sm font-bold uppercase tracking-wider text-cyan-600">Pet Info</h3>
+                <div className="space-y-4 text-left">
                   <div className="flex items-start space-x-3">
-                    <span className="p-2 bg-slate-50 rounded-lg text-slate-600">
-                      <Icon name="MapPin" size={20} />
+                    <span className="p-2 bg-white rounded-lg text-slate-400 border border-slate-100">
+                      <Icon name="MapPin" size={18} />
                     </span>
                     <div>
-                      <h4 className="font-bold text-slate-700 text-sm">Endereço</h4>
-                      <p className="text-sm text-slate-500">{storeData.address}</p>
+                      <h4 className="font-bold text-slate-700 text-xs uppercase tracking-wider">Endereço</h4>
+                      <p className="text-xs text-slate-500 mt-1">{storeData.address}</p>
                     </div>
                   </div>
-
                   <div className="flex items-start space-x-3">
-                    <span className="p-2 bg-slate-50 rounded-lg text-slate-600">
-                      <Icon name="Phone" size={20} />
+                    <span className="p-2 bg-white rounded-lg text-slate-400 border border-slate-100">
+                      <Icon name="Phone" size={18} />
                     </span>
                     <div>
-                      <h4 className="font-bold text-slate-700 text-sm">Telefone</h4>
-                      <p className="text-sm text-slate-500">{storeData.phone}</p>
+                      <h4 className="font-bold text-slate-700 text-xs uppercase tracking-wider">Telefone</h4>
+                      <p className="text-xs text-slate-500 mt-1">{storeData.phone}</p>
                     </div>
                   </div>
-
                   <div className="flex items-start space-x-3">
-                    <span className="p-2 bg-slate-50 rounded-lg text-slate-600">
-                      <Icon name="Clock" size={20} />
+                    <span className="p-2 bg-white rounded-lg text-slate-400 border border-slate-100">
+                      <Icon name="Clock" size={18} />
                     </span>
                     <div>
-                      <h4 className="font-bold text-slate-700 text-sm">Horário de Funcionamento</h4>
-                      <div className="text-sm text-slate-500 space-y-1 mt-1">
+                      <h4 className="font-bold text-slate-700 text-xs uppercase tracking-wider">Horários</h4>
+                      <div className="text-xs text-slate-500 mt-1 space-y-1">
                         <p>{storeData.businessHours.weekdays}</p>
                         <p>{storeData.businessHours.saturday}</p>
                         <p>{storeData.businessHours.sunday}</p>
@@ -481,94 +420,43 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="space-y-3 pt-6 border-t border-slate-100">
-                <a 
-                  href={getWhatsAppLink()} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center w-full px-6 py-3.5 text-base font-bold text-white rounded-full transition-all hover:scale-105 shadow-md"
-                  style={{ backgroundColor: 'var(--a-500)' }}
-                >
-                  <Icon name="Phone" className="mr-2" size={18} />
-                  Enviar Mensagem no WhatsApp
+              <div className="space-y-3 pt-6 border-t border-slate-200">
+                <a href={getWhatsAppLink()} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center w-full px-6 py-4 text-sm font-bold text-white bg-cyan-500 hover:bg-cyan-600 rounded-full transition-all shadow-md">
+                  Chamar no WhatsApp
                 </a>
-                {storeData.googleMapsDirectionsUrl && (
-                  <a 
-                    href={storeData.googleMapsDirectionsUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center w-full px-6 py-3.5 text-base font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-full transition-all hover:scale-105"
-                  >
-                    <Icon name="MapPin" className="mr-2 text-slate-500" size={18} />
-                    Como Chegar (Google Maps)
-                  </a>
-                )}
+                <a href={storeData.googleMapsDirectionsUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center w-full px-6 py-4 text-sm font-semibold text-slate-700 bg-white border border-slate-200 rounded-full transition-all">
+                  Rotas Google Maps
+                </a>
               </div>
-
             </div>
 
-            {/* Mapa Incorporado */}
-            <div className="lg:col-span-7 h-96 lg:h-auto rounded-2xl overflow-hidden shadow-md border border-slate-100 bg-white p-2">
-              {storeData.googleMapsEmbedUrl ? (
-                <iframe 
-                  src={storeData.googleMapsEmbedUrl}
-                  className="w-full h-full rounded-xl border-0"
-                  allowFullScreen={false}
-                  loading="lazy" 
-                  referrerPolicy="no-referrer-when-downgrade"
-                  title="Localização da loja"
-                ></iframe>
-              ) : (
-                <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-400">
-                  <span>Mapa indisponível</span>
-                </div>
-              )}
+            <div className="lg:col-span-7 h-96 lg:h-auto rounded-3xl overflow-hidden shadow-sm border border-slate-100 bg-white p-2">
+              <iframe src={storeData.googleMapsEmbedUrl} className="w-full h-full rounded-2xl border-0" allowFullScreen={false} loading="lazy" title="Localização Pet Saúde"></iframe>
             </div>
-
           </div>
         </div>
       </section>
 
-      {/* 7. FOOTER */}
+      {/* FOOTER */}
       <footer className="bg-slate-900 text-slate-400 py-12 border-t border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-            
-            {/* Lado Esquerdo */}
             <div className="text-center md:text-left space-y-3">
-              <span className="text-xl font-bold text-white tracking-tight" style={{ fontFamily: 'var(--font-display)' }}>
-                {storeData.name}
+              <span className="text-lg font-bold text-white" style={{ fontFamily: 'var(--font-display)' }}>
+                Pet<span className="text-cyan-500">Saúde</span>
               </span>
-              <p className="text-sm max-w-sm mx-auto md:mx-0">
-                {storeData.tagline}
+              <p className="text-xs text-slate-550 max-w-sm mx-auto md:mx-0">
+                © {new Date().getFullYear()} Pet Saúde Natal. Todos os direitos reservados.
               </p>
             </div>
-
-            {/* Lado Direito / Social e Crédito */}
             <div className="text-center md:text-right space-y-4">
-              <div className="flex items-center justify-center md:justify-end space-x-4">
-                {storeData.instagramUrl && (
-                  <a href={storeData.instagramUrl} target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-slate-800 text-slate-300 hover:text-white transition-colors hover:bg-slate-700">
-                    <Icon name="Instagram" size={18} />
-                  </a>
-                )}
-                {storeData.facebookUrl && (
-                  <a href={storeData.facebookUrl} target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-slate-800 text-slate-300 hover:text-white transition-colors hover:bg-slate-700">
-                    <Icon name="Facebook" size={18} />
-                  </a>
-                )}
-              </div>
-              <p className="text-xs text-slate-500">
-                © {new Date().getFullYear()} {storeData.name}. Todos os direitos reservados.
-              </p>
-              <p className="text-xs text-slate-500">
-                Desenvolvido com ❤️ por{' '}
-                <a href="https://github.com/FalAiquoc" target="_blank" rel="noopener noreferrer" className="underline hover:text-slate-300 transition-colors">
+              <p className="text-xs text-slate-550">
+                Desenvolvido com carinho por{' '}
+                <a href="https://github.com/FalAiquoc" target="_blank" rel="noopener noreferrer" className="underline hover:text-white transition-colors">
                   Diogo Falcão (FalAiquoc)
                 </a>
               </p>
             </div>
-
           </div>
         </div>
       </footer>
