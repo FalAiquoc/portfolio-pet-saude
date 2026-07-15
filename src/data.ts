@@ -25,7 +25,7 @@ export const storeData: StoreData = {
   typography: {
     displayFontFamily: 'Fredoka',
     bodyFontFamily: 'Nunito',
-    importUrl: 'https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600;700&family=Nunito:wght@300;400;500;600;700;800&display=swap',
+    importUrl: 'https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Nunito:wght@300;450;600;800&display=swap',
   },
   features: [
     {
@@ -46,30 +46,42 @@ export const storeData: StoreData = {
   ],
   products: [
     {
-      id: 'prod-1',
-      name: 'Banho e Tosa Completo',
-      description: 'Higienização morna, corte de unhas, limpeza de ouvidos, hidratação de pelagem e tosa artística na tesoura ou máquina.',
-      price: 'A partir de R$ 60,00',
+      id: 'pet-1',
+      name: 'Estética & Tosa Artística',
+      description: 'Banho morno relaxante, higienização de ouvidos, corte de unhas e tosa na tesoura ou máquina com shampoo hipoalergênico premium.',
+      price: 'R$ 60,00',
       iconName: 'Scissors',
       imageUrl: 'https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?auto=format&fit=crop&q=80&w=600',
+      category: 'estetica',
+      tag: 'Mais Procurado'
     },
     {
-      id: 'prod-2',
-      name: 'Consulta Veterinária Geral',
-      description: 'Exame clínico detalhado, check-up preventivo, aplicação de vacinas importadas e prescrição com acompanhamento.',
-      price: 'A partir de R$ 120,00',
+      id: 'pet-2',
+      name: 'Vacinação Importada & Checkup',
+      description: 'Consulta clínica preventiva completa combinada com a aplicação de vacinas éticas importadas (V10 e Antirrábica).',
+      price: 'R$ 139,90',
       iconName: 'HeartPulse',
       imageUrl: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&q=80&w=600',
+      category: 'clinica',
+      tag: 'Cuidado Essencial'
     },
     {
-      id: 'prod-3',
-      name: 'Rações Super Premium & Pet Shop',
-      description: 'Alimentação de alta qualidade para todas as idades, brinquedos interativos, coleiras confortáveis e farmácia veterinária.',
-      price: 'Os melhores preços de Natal',
+      id: 'pet-3',
+      name: 'Rações Super Premium & PetShop',
+      description: 'Nutrição especializada das melhores marcas (Royal Canin, Premier), brinquedos interativos, coleiras ergonômicas e farmácia.',
+      price: 'Preço de Atacado',
       iconName: 'ShoppingBag',
       imageUrl: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&q=80&w=600',
-    },
+      category: 'petshop',
+      tag: 'Melhor Preço'
+    }
   ],
-  instagramUrl: 'https://instagram.com',
-  facebookUrl: 'https://facebook.com',
+  instagramUrl: 'https://www.instagram.com',
+  facebookUrl: 'https://www.facebook.com',
+  brands: [
+    { name: 'Royal Canin', desc: 'Nutrição clínica para cães e gatos' },
+    { name: 'Premier Pet', desc: 'Alimentação super premium nacional' },
+    { name: 'Zoetis', desc: 'Medicamentos e vacinas veterinárias' },
+    { name: 'Bravecto', desc: 'Proteção eficaz contra pulgas e carrapatos' }
+  ]
 };
