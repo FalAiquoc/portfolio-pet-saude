@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { storeData } from './data';
 import { Icon } from './components/Icon';
 
-// Componente de Logotipo Vetorial Personalizado (Patinha estilizada com cruz de cuidado veterinário interna e anel de proteção)
+// Componente de Logotipo (Logo oficial por imagem ou Patinha com cruz de cuidado veterinário estilizada SVG como fallback)
 function Logo({ className = "h-10", dark = false }: { className?: string; dark?: boolean }) {
   const primaryColor = '#06b6d4'; // Ciano
   const accentColor = '#fbbf24';  // Amarelo
@@ -10,19 +10,20 @@ function Logo({ className = "h-10", dark = false }: { className?: string; dark?:
 
   return (
     <div className={`flex items-center space-x-2.5 ${className}`}>
-      <svg className="h-full aspect-square overflow-visible" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <g stroke={primaryColor} strokeWidth="12" strokeLinecap="round" strokeLinejoin="round">
-          {/* Patinha com cruz médica */}
-          <circle cx="100" cy="115" r="50" strokeWidth="14" />
-          {/* Dedos da pata */}
-          <circle cx="60" cy="55" r="16" fill={primaryColor} stroke="none" />
-          <circle cx="100" cy="35" r="18" fill={primaryColor} stroke="none" />
-          <circle cx="140" cy="55" r="16" fill={primaryColor} stroke="none" />
-          {/* Cruz Veterinária interna */}
-          <path d="M 100 95 L 100 135" stroke={accentColor} strokeWidth="10" />
-          <path d="M 80 115 L 120 115" stroke={accentColor} strokeWidth="10" />
-        </g>
-      </svg>
+      {storeData.logoUrl ? (
+        <img src={storeData.logoUrl} alt={storeData.name} className="h-8 w-auto object-contain rounded-md border border-cyan-500/10" />
+      ) : (
+        <svg className="h-full aspect-square overflow-visible" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <g stroke={primaryColor} strokeWidth="12" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="100" cy="115" r="50" strokeWidth="14" />
+            <circle cx="60" cy="55" r="16" fill={primaryColor} stroke="none" />
+            <circle cx="100" cy="35" r="18" fill={primaryColor} stroke="none" />
+            <circle cx="140" cy="55" r="16" fill={primaryColor} stroke="none" />
+            <path d="M 100 95 L 100 135" stroke={accentColor} strokeWidth="10" />
+            <path d="M 80 115 L 120 115" stroke={accentColor} strokeWidth="10" />
+          </g>
+        </svg>
+      )}
       <div className="flex flex-col leading-[0.9] text-left font-display">
         <span className="text-xl font-black tracking-tight uppercase" style={{ color: textColor }}>PET</span>
         <span className="text-[14px] font-black tracking-[0.25em]" style={{ color: primaryColor }}>SAÚDE</span>

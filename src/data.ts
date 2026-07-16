@@ -6,6 +6,7 @@ export const storeData: StoreData = {
   description: 'Clínica veterinária, pet shop e banho e tosa especializado em Natal. Uma equipe apaixonada por animais dedicada a oferecer o melhor atendimento para cães e gatos.',
   aboutText: 'O Pet Saúde nasceu do amor incondicional pelos animais. Entendemos que os pets são membros valiosos da família e merecem um atendimento que alie alta competência técnica com carinho genuíno. Localizado em Lagoa Nova, nosso espaço conta com consultórios equipados, centro de estética pet de última geração para banho e tosa de alto padrão, e uma farmácia veterinária completa para garantir o bem-estar do seu companheiro.',
   aboutImage: 'https://images.unsplash.com/photo-1581888227599-779811939961?auto=format&fit=crop&q=80&w=1200',
+  logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQh393t39d8sD-y5D2t2e3v-9sE-e300992Lg&s',
   phone: '(84) 3300-4444',
   phoneFormatted: '8433004444',
   whatsappNumber: '558433004444',
